@@ -3,41 +3,52 @@
 #include <time.h>
 #include "omp.h"
 
-void shuffle(int *arr, int n){
-  if(n > 1){
-    for(int i = 0; i < n; i++){
-
-    }  
+void print_arr(int *arr, int n){
+  int count = 0;
+  for(int i = 0; i < n; i++){
+    printf("%d ", arr[i]);
+    count++;
+    if(count == 10){
+      printf("\n");
+      count = 0;
+    }
   }
 }
 
 void random_number_generate(int a[], int n, int min, int max){
   srand(time(NULL));
-
   for(int i = 0; i < n; i++){
     a[i] = rand() % (max - min + 1) + min;
   }
 }
 
+//Ham tao gia tri "gia ngau nhien" song song, nhanh va an toan hon
+void pseudo_number_generator(int *a, int n){
+  #pragma omp parallel for
+  for(int i = 0; i < n; i++){
+    a[i] = (i * 37 + 19) % n;  
+  }
+}
+
 void merge(int arr[], int left, int mid, int right) {
   int i, j, k;
-  int n1 = mid - left + 1;
-  int n2 = right - mid;
+  int size1 = mid - left + 1;
+  int size2 = right - mid;
 
-  int *L = (int*)malloc(n1 * sizeof(int));
-  int *R = (int*)malloc(n2 * sizeof(int));
+  int *L = (int*)malloc(size1 * sizeof(int));
+  int *R = (int*)malloc(size2 * sizeof(int));
 
-  for (i = 0; i < n1; i++){
+  for (i = 0; i < size1; i++){
     L[i] = arr[left + i];
   }
    
-  for (j = 0; j < n2; j++){
+  for (j = 0; j < size2; j++){
     R[j] = arr[mid + 1 + j];
   }
 
-  i = 0; j = 0; k = left;
+  i = 0; j = 0; k = left; 
 
-  while (i < n1 && j < n2){
+  while (i < size1 && j < size2){
     if (L[i] <= R[j]) {
       arr[k++] = L[i++];
     } else {
@@ -45,11 +56,11 @@ void merge(int arr[], int left, int mid, int right) {
     }
   }
 
-  while (i < n1){
+  while (i < size1){
     arr[k++] = L[i++];
   }
 
-  while (j < n2){
+  while (j < size2){
     arr[k++] = R[j++];
   }
 
@@ -66,20 +77,11 @@ void mergeSort(int arr[], int left, int right) {
   }
 }
 
-void printArray(int arr[], int size) {
-  for (int i = 0; i < size; i++)
-    printf("%d ", arr[i]);
-  printf("\n");
-}
-
 int main() {
   int num, min, max;
   int count = 0;
   printf("Nhap so luong phan tu cua mang: ");
   scanf("%d", &num);
-
-  // printf("Nhap gia tri min, max: ");
-  // scanf("%d %d", &min, &max);
 
   // Cấp phát mảng động
   int *arr = (int*)malloc(num * sizeof(int));
@@ -88,21 +90,7 @@ int main() {
     return 1; 
   }
 
-  for(int i = 0; i < num; i++){
-    arr[i] = i;
-  }
-  srand(time(NULL));
-
-
-  printf("Mang truoc khi sap xep: \n");
-  for(int i = 0; i < num; i++){
-    printf("%d ", arr[i]);
-    count++;
-    if(count == 10){
-      printf("\n");
-      count = 0;
-    }
-  }
+  pseudo_number_generator(arr, num);
 
   double start_time = omp_get_wtime();
 
@@ -110,18 +98,8 @@ int main() {
 
   double end_time = omp_get_wtime();
 
-  printf("\nSorted Array: \n");
-  for(int i = 0; i < num; i++){
-    printf("%d ", arr[i]);
-    count++;
-    if(count == 10){
-      printf("\n");
-      count = 0;
-    }
-  }
+  printf("Thoi gian sau khi sap xep: %.10f", end_time - start_time);
 
-  printf("\nThoi gian sau khi sap xep: %.10f", end_time - start_time);
-
-  free(arr);  // Giải phóng bộ nhớ
+  free(arr); 
   return 0;
 }
