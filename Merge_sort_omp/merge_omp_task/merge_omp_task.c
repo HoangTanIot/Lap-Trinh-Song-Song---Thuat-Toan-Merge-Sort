@@ -99,7 +99,7 @@ int main(void){
     return 1;
   }
 
-  FILE *output_file = fopen("Task_omp_merge_sort.csv", "w");
+  FILE *output_file = fopen("Time_test/e_100mil.csv", "w");
   if(output_file == NULL){
     printf("Khong the mo file de ghi !\n");
     free(a);
