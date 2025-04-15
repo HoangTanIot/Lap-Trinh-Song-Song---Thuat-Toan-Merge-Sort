@@ -4,9 +4,11 @@ import glob
 import os
 
 # === Tìm tất cả các file CSV trong thư mục hiện tại ===
-file_paths = [r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Task_omp_merge_sort.csv",
-              r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Sections_merge_sort.csv",
-              r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Sequential_merge_sort.csv"]  
+file_paths = [r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_1mil.csv",
+              r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_10mil.csv",
+              r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_100mil.csv",
+              r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_100k.csv"
+              ]  
 # nếu muốn lọc riêng, sửa tên ví dụ: "Task_omp_merge_sort_*.csv"
 
 plt.figure(figsize=(12, 6))
@@ -39,5 +41,5 @@ plt.grid(True)
 plt.tight_layout()
 
 # === Hiển thị hoặc lưu ảnh ===
-plt.savefig("Project_2024-2/compare_execution_time.png", dpi=300)  # Lưu file ảnh
+plt.savefig("Project_2024-2/omp_task_compare.png", dpi=300)  # Lưu file ảnh
 plt.show()
