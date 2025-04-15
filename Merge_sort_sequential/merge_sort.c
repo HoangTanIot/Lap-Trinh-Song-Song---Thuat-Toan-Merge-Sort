@@ -78,7 +78,7 @@ void mergeSort(int arr[], int left, int right) {
 }
 
 int main() {
-  int num, min, max;
+  int num;
   int count = 0;
   printf("Nhap so luong phan tu cua mang: ");
   scanf("%d", &num);
@@ -90,16 +90,36 @@ int main() {
     return 1; 
   }
 
-  pseudo_number_generator(arr, num);
+  FILE *output_file = fopen("Sequential_merge_sort.csv", "w");
+  if(output_file == NULL){
+    printf("Khong mo duoc file de ghi !\n");
+    free(arr);
+    return 1;
+  }
+  fprintf(output_file, "Lan,thoi gian(s)\n");
+  double tong = 0.0f;
+  
+  for(int run = 1; run <= 15; run++){
+    pseudo_number_generator(arr, num); //Reset mang
 
-  double start_time = omp_get_wtime();
+    double start_time = omp_get_wtime();
+    
+    mergeSort(arr, 0, num - 1);
 
-  mergeSort(arr, 0, num - 1);
+    double end_time = omp_get_wtime();
 
-  double end_time = omp_get_wtime();
+    double elapsed = end_time - start_time;
+    tong += elapsed;
 
-  printf("Thoi gian sau khi sap xep: %.10f", end_time - start_time);
+    printf("Lan %2d: %.10f\n", run, elapsed);
+    fprintf(output_file, "%d,%.10f\n", run , elapsed);
+  }
 
+  double aver = tong / 15.0f;
+  printf("Thoi gian trung binh: %.10f", aver);
+  fprintf(output_file, "Average,%.10f\n", aver);
+
+  fclose(output_file);
   free(arr); 
   return 0;
 }

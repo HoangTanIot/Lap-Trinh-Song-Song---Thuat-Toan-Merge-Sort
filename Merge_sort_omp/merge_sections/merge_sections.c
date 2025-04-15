@@ -123,6 +123,7 @@ void merge_sort(int a[], int left, int right){
 
 int main(void){
   int num;
+  double tong = 0.0f;
   printf("Nhap so phan tu can sap xep: ");
   scanf("%d", &num);
   
@@ -131,19 +132,39 @@ int main(void){
     printf("Khong the cap phat bo nho!\n");
     return 1;
   } 
+
+  FILE *output_file = fopen("Sections_merge_sort.csv", "w");
+  if(output_file == NULL){
+    printf("Khong the mo file de ghi !\n");
+    free(a);
+    return 1;
+  }
+  fprintf(output_file, "Lan,thoi gian(s)\n");
+
   //Thay doi so core xu ly
   omp_set_num_threads(8); 
 
-  pseudo_number_generator(a, num);
+  for(int run = 1; run <= 15; run++){
+    pseudo_number_generator(a, num); //Cu mot lan run tang thi mang lai reset
 
-  double start_time = omp_get_wtime();
+    double start_time = omp_get_wtime();
 
-  merge_sort(a, 0, num - 1);
+    merge_sort(a, 0, num - 1);
 
-  double end_time = omp_get_wtime();
+    double end_time = omp_get_wtime();
 
-  printf("Thoi gian thuc hien: %.10f", end_time - start_time);
+    double elapsed = end_time - start_time;
+    tong += elapsed;
 
+    printf("Lan %2d: %.10f\n", run, elapsed);
+    fprintf(output_file, "%d,%.10f\n", run , elapsed);
+  }
+
+  double aver = tong / 15.0f;
+  printf("Thoi gian trung binh: %.10f", aver);
+  fprintf(output_file, "Average,%.10f\n", aver);
+
+  fclose(output_file);
   free(a);
   return 0;
 }
