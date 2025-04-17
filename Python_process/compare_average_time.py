@@ -7,25 +7,31 @@ sequential_files = [
     r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100k.csv",
     r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_1mil.csv",
     r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_10mil.csv",
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100mil.csv"
+    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100mil.csv",
+    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_500mil.csv"
+
 ]
 
 sections_files = [
     r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Time_test\e_100k.csv",
     r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Time_test\e_1mil.csv",
     r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Time_test\e_10mil.csv",
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Time_test\e_100mil.csv"
+    r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Time_test\e_100mil.csv",
+    r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_sections\Time_test\e_500mil.csv"
+
 ]
 
 omp_task_files = [
     r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_100k.csv",
     r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_1mil.csv",
     r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_10mil.csv",
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_100mil.csv"
+    r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_100mil.csv",
+    r"D:\C-C++_project\Project_2024-2\Merge_sort_omp\merge_omp_task\Time_test\e_500mil.csv"
+
 ]
 
 # Tên mốc số lượng phần tử
-array_sizes = ["100k", "1mil", "10mil", "100mil"]
+array_sizes = ["100,000", "1,000,000", "10,000,000", "100,000,000", "500,000,000"]
 
 def extract_average(file_list):
     times = []
@@ -53,8 +59,8 @@ omp_task_avg = extract_average(omp_task_files)
 # === Vẽ biểu đồ ===
 plt.figure(figsize=(10,6))
 plt.plot(array_sizes, sequential_avg, marker='o', label='Sequential', color="green")
-plt.plot(array_sizes, sections_avg, marker='s', label='OMP Sections', color="blue")
-plt.plot(array_sizes, omp_task_avg, marker='^', label='OMP Task', color="red")
+plt.plot(array_sizes, sections_avg, marker='s', label='Omp Sections', color="blue")
+plt.plot(array_sizes, omp_task_avg, marker='^', label='Omp Task', color="red")
 
 plt.xlabel("Số lượng phần tử")
 plt.ylabel("Thời gian trung bình (s)")

@@ -4,10 +4,11 @@ import os
 
 # === Danh sách file và số lượng phần tử mảng ===
 file_info = {
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100k.csv": 100_000,
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_1mil.csv": 1_000_000,
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_10mil.csv": 10_000_000,
-    r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100mil.csv": 100_000_000
+            r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100k.csv": 100_000,
+            r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_1mil.csv": 1_000_000,
+            r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_10mil.csv": 10_000_000,
+            r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_100mil.csv": 100_000_000,
+            r"D:\C-C++_project\Project_2024-2\Merge_sort_sequential\Time_test\e_500mil.csv": 500_000_000
 }
 
 x_values = []

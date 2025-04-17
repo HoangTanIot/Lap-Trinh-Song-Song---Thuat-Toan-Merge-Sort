@@ -90,7 +90,7 @@ int main() {
     return 1; 
   }
 
-  FILE *output_file = fopen("Time_test/e_100k.csv", "w");
+  FILE *output_file = fopen("Time_test/e_500mil.csv", "w");
   if(output_file == NULL){
     printf("Khong mo duoc file de ghi !\n");
     free(arr);
