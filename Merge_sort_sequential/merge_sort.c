@@ -35,19 +35,21 @@ void merge(int arr[], int left, int mid, int right) {
   int size1 = mid - left + 1;
   int size2 = right - mid;
 
+  //Tao 2 mang dong chua phan tu cua 2 nua
   int *L = (int*)malloc(size1 * sizeof(int));
   int *R = (int*)malloc(size2 * sizeof(int));
 
+  //Copy het phan tu cua mang da merge_sort vao tung phan
   for (i = 0; i < size1; i++){
     L[i] = arr[left + i];
-  }
-   
+  }   
   for (j = 0; j < size2; j++){
     R[j] = arr[mid + 1 + j];
   }
 
   i = 0; j = 0; k = left; 
 
+  //Bat dau merge va kiem tra thu tu
   while (i < size1 && j < size2){
     if (L[i] <= R[j]) {
       arr[k++] = L[i++];
@@ -56,6 +58,7 @@ void merge(int arr[], int left, int mid, int right) {
     }
   }
 
+  //2 vong while nay chi co chuc nang duyet lai mang 1 lan nua
   while (i < size1){
     arr[k++] = L[i++];
   }
@@ -68,12 +71,19 @@ void merge(int arr[], int left, int mid, int right) {
   free(R);
 }
 
+int isSorted(int *arr, int n){
+  for(int i = 1; i < n; i++){
+    if(arr[i - 1] > arr[i]) return 0;
+  }
+  return 1;
+}
+
 void mergeSort(int arr[], int left, int right) {
-  if (left < right) {
-    int mid = left + (right - left) / 2;
-    mergeSort(arr, left, mid);
-    mergeSort(arr, mid + 1, right);
-    merge(arr, left, mid, right);
+  if (left < right) { //Dam bao dieu kien
+    int mid = left + (right - left) / 2; //Chia doi mang -> chia den khi nao mang con 1 phan tu 
+    mergeSort(arr, left, mid); //Tiep tuc de quy tu left -> mid (left co dinh, mid nho dan)
+    mergeSort(arr, mid + 1, right); //Tiep tuc de quy tu mid + 1 -> right (right co dinh, mid thay doi)
+    merge(arr, left, mid, right); //Thuc thi cuoi cung
   }
 }
 
@@ -118,6 +128,10 @@ int main() {
   double aver = tong / 15.0f;
   printf("Thoi gian trung binh: %.10f", aver);
   fprintf(output_file, "Average,%.10f\n", aver);
+
+  if(isSorted(arr, num)){
+    printf("Check: Ok !");
+  }else printf("Check: fail");
 
   fclose(output_file);
   free(arr); 

@@ -61,6 +61,7 @@ void merge(int arr[], int left, int mid, int right) {
   int *R = (int*)malloc(size2 * sizeof(int));
 
   //Ham for nay khong song song duoc (?)
+  //Don gian chi la copy cac phan tu vao mang
   for (i = 0; i < size1; i++){
     L[i] = arr[left + i];
   }
