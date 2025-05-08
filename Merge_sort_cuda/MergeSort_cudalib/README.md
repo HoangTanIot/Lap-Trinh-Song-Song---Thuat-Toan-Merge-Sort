@@ -16,16 +16,16 @@ Thứ nhất, hãy hiểu về GPU core khác thế nào với CPU core
 ***
 ➡️ Đây cũng chính là lý do mà GPU không tối ưu cho cho đệ quy 
 ### Giải thích ###
-*** 1. GPU không được thiết kế cho đệ quy sâu ***
+***1. GPU không được thiết kế cho đệ quy sâu***
 * Đệ quy cần stack call cho từng mức gọi hàm 
 * Trên CPU, stack được cấp phát thoải mái 
 * Trên GPU, mỗi luồng chỉ có stack nhỏ (thường 1-2KB mặc định), không phù hợp để gọi đệ quy sâu (gọi lồng nhau nhiều lần)
 * Việc gọi đệ quy nhiều cấp sẽ nhanh chóng hết stack, gây lỗi hoặc bị chặn bởi compiler
-*** 2. Luồng GPU không hiệu quả khi rẽ nhanh (branching) ***
+***2. Luồng GPU không hiệu quả khi rẽ nhanh (branching)***
 * Trong thuật toán đệ quy, mỗi nhãnh đi theo hướng khác nhau: `left`, `right`, `merge`,...
 * Nếu nhiều luồng CUDA chạy `mergeSort(left)` trong khi các luồng khác chạy `mergeSort(right)`, ta có divergence (phân kỳ)- GPU phải chạy tuần tự từng nhánh, mất hiệu suất
 * GPU chỉ chạy hiệu quả nhất khi nhiều luồng cùng làm một việc tại một thời điểm (*SIMT model: Single Instruction, Multiple Threads*)
-*** 3. Không phải kiến trúc GPU nào cũng hỗ trợ đệ quy ***
+***3. Không phải kiến trúc GPU nào cũng hỗ trợ đệ quy***
 * Một số GPU cũ (Compute Capability < 2.0) không hỗ trợ recursion
 * Các GPU mới (>=2.0) hỗ trợ device-side recursion nhưng: 
   - Phải bật `-rdc=true` (relocatable device code)
@@ -33,7 +33,7 @@ Thứ nhất, hãy hiểu về GPU core khác thế nào với CPU core
   - Vẫn bị giới hạn bởi stack nếu gọi đệ quy sâu
 
 # Vậy ta dùng giải pháp gì ? #
-👉 *** Dùng thuật toán Bottom-Up Merge Sort ***
+👉 ***Dùng thuật toán Bottom-Up Merge Sort***
 * Không cần đệ quy 
 * Mỗi bước chia mảng thành nhiều đoạn nhỏ cố định (width), rồi merge song song
 * Tối ưu cho GPU vì: 
@@ -41,7 +41,7 @@ Thứ nhất, hãy hiểu về GPU core khác thế nào với CPU core
  - Không có rẽ nhánh phức tạp
  - Dễ ánh xạ lên mỗi thread xử lý 1 đoạn con.
 
-*** Ý tưởng chính ***
+***Ý tưởng chính***
 * Không chia đệ quy nữa
 * Thay vào đó ta: 
  1. Chia mảng thành các đoạn nhỏ cố định (ví dụ mỗi đoạn 2 phần tử)
@@ -64,7 +64,7 @@ Thứ nhất, hãy hiểu về GPU core khác thế nào với CPU core
 |      0 1 1 2 2 2 3 3 4 5 5 6 7 8 9 9      |
 |                                           |
 
-*** 🧠 Ví dụ minh họa ***
+***🧠 Ví dụ minh họa***
 Giả sử mảng có 8 phần tử: <br>
 ```text
 arr = [7, 3, 5, 2, 9, 1, 6, 8]
