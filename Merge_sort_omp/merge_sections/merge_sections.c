@@ -140,7 +140,7 @@ int main(void){
     free(a);
     return 1;
   }
-  fprintf(output_file, "Lan,thoi gian(s)\n");
+  fprintf(output_file, "Lan,thoi_gian(s)\n");
 
   //Thay doi so core xu ly
   omp_set_num_threads(8); 

@@ -23,11 +23,16 @@ void random_number_generate(int a[], int n, int min, int max){
 }
 
 //Ham tao gia tri "gia ngau nhien" song song, nhanh va an toan hon
-void pseudo_number_generator(int *a, int n){
+double pseudo_number_generator(int *a, int n){
+  double start_time = omp_get_wtime();
+
   #pragma omp parallel for
   for(int i = 0; i < n; i++){
     a[i] = (i * 37 + 19) % n;  
   }
+
+  double end_time = omp_get_wtime();
+  return (end_time - start_time);
 }
 
 void merge(int arr[], int left, int mid, int right) {
@@ -106,11 +111,11 @@ int main() {
     free(arr);
     return 1;
   }
-  fprintf(output_file, "Lan,thoi gian(s)\n");
+  fprintf(output_file, "Lan,thoi_gian(s)\n");
   double tong = 0.0f;
   
   for(int run = 1; run <= 15; run++){
-    pseudo_number_generator(arr, num); //Reset mang
+    double num_gen_time = pseudo_number_generator(arr, num); //Reset mang
 
     double start_time = omp_get_wtime();
     
@@ -121,7 +126,7 @@ int main() {
     double elapsed = end_time - start_time;
     tong += elapsed;
 
-    printf("Lan %2d: %.10f\n", run, elapsed);
+    printf("Lan %2d: %.10f, thoi gian tao mang: %.6f\n", run, elapsed, num_gen_time);
     fprintf(output_file, "%d,%.10f\n", run , elapsed);
   }
 

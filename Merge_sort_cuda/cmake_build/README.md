@@ -1,0 +1,2 @@
+## Folder chứa file.bat cho Windows thể build project chứa các thư viện có CMake ##
+Do trong project có thư viện chứa mã nguồn C/C++ chuẩn (sử dụng MSYS2) và CUDA (sử dụng MSVC + nvcc) nên cần tách ra làm 2 file để có thể build cho từng môi trường riêng 
