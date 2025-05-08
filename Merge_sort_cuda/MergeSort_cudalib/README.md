@@ -20,11 +20,11 @@ Thứ nhất, hãy hiểu về GPU core khác thế nào với CPU core
 * Đệ quy cần stack call cho từng mức gọi hàm 
 * Trên CPU, stack được cấp phát thoải mái 
 * Trên GPU, mỗi luồng chỉ có stack nhỏ (thường 1-2KB mặc định), không phù hợp để gọi đệ quy sâu (gọi lồng nhau nhiều lần)
-* Việc gọi đệ quy nhiều cấp sẽ nhanh chóng hết stack, gây lỗi hoặc bị chặn bởi compiler
+* Việc gọi đệ quy nhiều cấp sẽ nhanh chóng hết stack, gây lỗi hoặc bị chặn bởi compiler <br>
 ***2. Luồng GPU không hiệu quả khi rẽ nhanh (branching)***
 * Trong thuật toán đệ quy, mỗi nhãnh đi theo hướng khác nhau: `left`, `right`, `merge`,...
 * Nếu nhiều luồng CUDA chạy `mergeSort(left)` trong khi các luồng khác chạy `mergeSort(right)`, ta có divergence (phân kỳ)- GPU phải chạy tuần tự từng nhánh, mất hiệu suất
-* GPU chỉ chạy hiệu quả nhất khi nhiều luồng cùng làm một việc tại một thời điểm (*SIMT model: Single Instruction, Multiple Threads*)
+* GPU chỉ chạy hiệu quả nhất khi nhiều luồng cùng làm một việc tại một thời điểm (*SIMT model: Single Instruction, Multiple Threads*) <br>
 ***3. Không phải kiến trúc GPU nào cũng hỗ trợ đệ quy***
 * Một số GPU cũ (Compute Capability < 2.0) không hỗ trợ recursion
 * Các GPU mới (>=2.0) hỗ trợ device-side recursion nhưng: 
