@@ -30,6 +30,8 @@ extern "C" { //Dung khi goi cac ham tu C trong C++ hoac nguoc lai
 
 __host__ bool isSorted(long *arr, long n);
 
+/************************** VERSION 1 ***************************/
+
 /**
  * @brief Cay nhi phan tim kiem duoc su dung tren day so da duoc sap xep tang dan hoac giam dan
  * \note Y tuong thuat toan: o moi lan tim kiem tren doan [L, R] thi ban se tim ra phan tu dung giua va so sanh
@@ -81,6 +83,18 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
 __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int width);
 
 /**
+ * @brief MergeSort tren GPU
+ * @param arr Mang tu CPU -> chuyen qua GPU de thuc hien
+ * \note Cap bo nho thong nhat (unified memory) cho deviceArr va auxArr, cho phep CPU & GPU cung truy cap
+ * Cach nay giup khong can copy qua lai thu cong tu CPU qua GPU (cudaMemcpy())
+  \note CPU <------> |   Unified Memory    | <------> GPU
+ */
+void mergeSortGPU(long *arr, int n);
+
+
+/************************** VERSION 2 ***************************/
+
+/**
  * @brief Ham tinh toan chi so thread trong kernel hien tai
  */
 __device__ unsigned int getIndex_kernel(dim3 *threads, dim3 *blocks);
@@ -91,15 +105,6 @@ __global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long width, lon
  * @brief Duoc goi boi gpu_mergeSort_ver2()
  */
 __device__ void gpu_bottomUpMerge_ver2(long *arr, long *aux, long left, long mid, long right);
-
-/**
- * @brief MergeSort tren GPU
- * @param arr Mang tu CPU -> chuyen qua GPU de thuc hien
- * \note Cap bo nho thong nhat (unified memory) cho deviceArr va auxArr, cho phep CPU & GPU cung truy cap
- * Cach nay giup khong can copy qua lai thu cong tu CPU qua GPU (cudaMemcpy())
-  \note CPU <------> |   Unified Memory    | <------> GPU
- */
-void mergeSortGPU(long *arr, int n);
 
 void mergeSortGPU_ver2(long *arr, long n, dim3 threadsPerBlock, dim3 blocksPerGrid);
 

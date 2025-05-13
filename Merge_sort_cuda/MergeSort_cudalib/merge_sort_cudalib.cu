@@ -13,17 +13,6 @@
 #include "merge_sort_cudalib.cuh"
 #include "Cuda_check_err.cu"
 
-__device__ int binarySearch(long *arr, int val, int left, int right){
-  if(right <= left){ //Khi index right == index left (con 1 phan tu)
-    return (val > arr[left] ? (left + 1) : left); //Neu gia tri can tim (val) lon hon gia tri left
-  }
-  int mid = (left + right) / 2;
-  if(val > arr[mid]){ //Neu gia tri can tim lon hon gia tri o giua 
-    return binarySearch(arr, val, mid + 1, right); //Bo het mang ben trai (be hon val), de quy tiep mang ben phai
-  }
-  return binarySearch(arr, val, left, mid); //Khong thi bo het mang ben phai (lon hon val), de quy tiep mang ben trai
-}
-
 //Ham kiem tra xem thu tu phan tu da chuan chua
 __host__ bool isSorted(long *arr, long n){
   for(int i = 1; i < n; i++){
@@ -35,6 +24,19 @@ __host__ bool isSorted(long *arr, long n){
     }
   }
   return 1;
+}
+
+/************************** VERSION 1 ***************************/
+
+__device__ int binarySearch(long *arr, int val, int left, int right){
+  if(right <= left){ //Khi index right == index left (con 1 phan tu)
+    return (val > arr[left] ? (left + 1) : left); //Neu gia tri can tim (val) lon hon gia tri left
+  }
+  int mid = (left + right) / 2;
+  if(val > arr[mid]){ //Neu gia tri can tim lon hon gia tri o giua 
+    return binarySearch(arr, val, mid + 1, right); //Bo het mang ben trai (be hon val), de quy tiep mang ben phai
+  }
+  return binarySearch(arr, val, left, mid); //Khong thi bo het mang ben phai (lon hon val), de quy tiep mang ben trai
 }
 
 __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot){
@@ -53,45 +55,6 @@ __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot){
   scanIndex = binarySearch(subAux, subAux[ownIndex], scanIndex, upperBound - 1);
   return ownIndex + scanIndex - nLeft;
 } 
-
-__device__ unsigned int getIndex_kernel(dim3 *threads, dim3 *blocks){
-  int x;
-  return (threadIdx.x + 
-          threadIdx.y * (x = threads->x) + 
-          threadIdx.z * (x *= threads->y) + 
-          blockIdx.x * (x *= threads->z) + 
-          blockIdx.y * (x *= blocks->z) +
-          blockIdx.z * (x *= blocks->y));
-}
-
-__device__ void gpu_bottomUpMerge_ver2(long *arr, long *aux, long left, long mid, long right){
-  long i = left;
-  long j =  mid;
-  for(long k = left; k < right; k++){
-    if(i < mid && (j >= right || arr[i] < arr[j])){
-      aux[k] = arr[i];
-      i++;
-    }else{
-      aux[k] = arr[j];
-      j++;
-    }
-  }
-}
-
-__global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long width, long slices, dim3 *threads, dim3 *blocks){
-  unsigned int idx = getIndex_kernel(threads, blocks);
-  long left = width * idx * slices, mid, right;
-
-  for(long slice = 0; slice < slices; slice++){
-    if(left >= n){
-      break;
-    }
-    mid = min_local(left + (width >> 1), n);
-    right = min_local(left + width, n);
-    gpu_bottomUpMerge_ver2(arr, aux, left, mid, right);
-    left += width;
-  }
-}
 
 __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
   /**
@@ -208,6 +171,47 @@ void mergeSortGPU(long *arr, int n){
 
   cudaSafeCall(cudaFree(deviceArr));
   cudaSafeCall(cudaFree(auxArr));
+}
+
+/************************** VERSION 2 ***************************/
+
+__device__ unsigned int getIndex_kernel(dim3 *threads, dim3 *blocks){
+  int x;
+  return (threadIdx.x + 
+          threadIdx.y * (x = threads->x) + 
+          threadIdx.z * (x *= threads->y) + 
+          blockIdx.x * (x *= threads->z) + 
+          blockIdx.y * (x *= blocks->z) +
+          blockIdx.z * (x *= blocks->y));
+}
+
+__device__ void gpu_bottomUpMerge_ver2(long *arr, long *aux, long left, long mid, long right){
+  long i = left;
+  long j =  mid;
+  for(long k = left; k < right; k++){
+    if(i < mid && (j >= right || arr[i] < arr[j])){
+      aux[k] = arr[i];
+      i++;
+    }else{
+      aux[k] = arr[j];
+      j++;
+    }
+  }
+}
+
+__global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long width, long slices, dim3 *threads, dim3 *blocks){
+  unsigned int idx = getIndex_kernel(threads, blocks);
+  long left = width * idx * slices, mid, right;
+
+  for(long slice = 0; slice < slices; slice++){
+    if(left >= n){
+      break;
+    }
+    mid = min_local(left + (width >> 1), n);
+    right = min_local(left + width, n);
+    gpu_bottomUpMerge_ver2(arr, aux, left, mid, right);
+    left += width;
+  }
 }
 
 void mergeSortGPU_ver2(long *arr, long n, dim3 threadsPerBlock, dim3 blocksPerGrid){
