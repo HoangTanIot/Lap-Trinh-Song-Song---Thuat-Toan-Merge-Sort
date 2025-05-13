@@ -13,7 +13,7 @@
 #include <device_launch_parameters.h>
 
 #define min_local(a, b) ((a) < (b) ? (a) : (b))
-
+#define MERGE_PARALLEL_THRESHOLD 32768 //Giai thich vi sao lai phai nguong nay thi moi chay duoc 100tr phan tu ??? (Phan cung ?)
 /**
  * @brief Co ban ve kien truc torng GPU
  * @param threadsPerBlock So luong moi thread trong moi khoi (block) - Quyet dinh do song song trong moi block,

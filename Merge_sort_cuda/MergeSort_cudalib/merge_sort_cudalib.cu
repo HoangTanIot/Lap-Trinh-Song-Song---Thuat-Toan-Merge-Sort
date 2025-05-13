@@ -129,7 +129,7 @@ __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int widt
 
   int nTot = right - left + 1; //So threads duoc sinh ra
 
-  if(nTot > 16384){ //Neu phan tu lon hon 16384 (nguong de co the song song kernel)
+  if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu phan tu lon hon nguong de co the song song kernel)
     int numThreadsPerBlock = 1024; //1024 thread moi block
     int numBlocks = (nTot + numThreadsPerBlock - 1) / numThreadsPerBlock; //So blocks duoc sinh ra theo so phan tu mang
 
@@ -147,9 +147,9 @@ void mergeSortGPU(long *arr, int n){
 
   //Uu tien su dung cache L1 hon shared memory -> Toi uu hieu suat cho kernel nho
   cudaSafeCall(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
-  cudaSafeCall(cudaMalloc((void**)&deviceArr, n * sizeof(int)));
-  cudaSafeCall(cudaMalloc((void**)&auxArr, n * sizeof(int)));
-  cudaSafeCall(cudaMemcpy(deviceArr, arr, n * sizeof(int), cudaMemcpyHostToDevice)); //Sao chep du lieu tu mang arr(host - CPU) vao deviceArr(GPU)
+  cudaSafeCall(cudaMalloc((void**)&deviceArr, n * sizeof(long)));
+  cudaSafeCall(cudaMalloc((void**)&auxArr, n * sizeof(long)));
+  cudaSafeCall(cudaMemcpy(deviceArr, arr, n * sizeof(long), cudaMemcpyHostToDevice)); //Sao chep du lieu tu mang arr(host - CPU) vao deviceArr(GPU)
 
   //Duyet qua cac kich thuoc doan con: 1, 2, 4, 8,...n
   //Moi lan lap se merge cac doan co cung kich thuoc
@@ -160,14 +160,14 @@ void mergeSortGPU(long *arr, int n){
     int numThreadsPerBlock = 32;
     int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;
 
-    cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(int), cudaMemcpyDeviceToDevice));
+    cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice));
     mergeSort <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, width);
     cudaDeviceSynchronize(); //__host__ function
     cudaCheckError();
   }
 
   //Sau khi sap xep xong thi tra ve arr tren CPU 
-  cudaSafeCall(cudaMemcpy(arr, deviceArr, n * sizeof(int), cudaMemcpyDeviceToHost));
+  cudaSafeCall(cudaMemcpy(arr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToHost));
 
   cudaSafeCall(cudaFree(deviceArr));
   cudaSafeCall(cudaFree(auxArr));
