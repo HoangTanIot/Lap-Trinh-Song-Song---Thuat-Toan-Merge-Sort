@@ -66,11 +66,7 @@ int main(void){
   for(int i = 0; i < numSorts; i++){
     num_gen_time = pseudo_number_generate(arr, num);
 
-    // std::cout << "Before: " << std::endl;
-    // printArray(arr, num);
-
     double duration = benchmarkGPU(arr, num);
-    // double duration = benchmarkGPU_ver2(arr, num, threadsPerBlock, blocksPerGrid);
     total_time += duration;
 
     bool check = isSorted(arr, num);
@@ -86,8 +82,6 @@ int main(void){
 
     //In ket qua ra man hinh + luu vao file (tgian thuc thi + tgian tao mang)
     std::cout << "Lan "<< i + 1 << ": " << duration << " ms, check: OK !" << std::endl;
-    // std::cout << "After: " << std::endl;
-    // printArray(arr, num);
     std::cout << "Number generate time: " << num_gen_time << " seconds" << std::endl;
     outFile << i + 1 << "," << std::fixed << std::setprecision(10) << duration << ","
                             << std::fixed << std::setprecision(10) << num_gen_time << "\n";
