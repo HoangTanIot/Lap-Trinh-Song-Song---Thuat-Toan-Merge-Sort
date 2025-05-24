@@ -115,6 +115,7 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
   }
 }
 
+// __global__: Ham duoc goi tren CPU nhung chay tren GPU
 __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int width){
   int idx = blockIdx.x * blockDim.x + threadIdx.x; 
 
