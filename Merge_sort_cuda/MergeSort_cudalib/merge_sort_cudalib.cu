@@ -66,8 +66,8 @@ __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
    */
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  int nLeft = mid - left + 1;
-  int nRight = right - mid;
+  int nLeft = mid - left + 1; //Xac dinh vi tri ben trai
+  int nRight = right - mid; //Xac dinh 
   int nTot = nLeft + nRight;
 
   //Neu thread co chi so vuot ngoai tong so phan tu thi dung lai - khong lam gi ca
@@ -77,7 +77,7 @@ __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
 
   //Xac dinh phan tu aux[left + idx] dang thuoc mang con trai hay phai
   //Sau do se thuc hien tim kiem nhi phan trong mang con lai de dem xem co bao nhieu phan tu nho hon no
-  //Nham xac dinh vi tri chinh xac sau khi merge roi day vao trong mang arr cuoi cung
+  //Nham xac dinh vi tri chinh xac sau khi merge roi push vao trong mang arr cuoi cung
   int arrIndex = getIndex(&aux[left], idx, nLeft, nTot);
   arr[left + arrIndex] = aux[left + idx]; //Ghi phan tu vao dung vi tri trong mang arr
 
@@ -122,16 +122,17 @@ __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int widt
 
   int left = idx * width; //Chi so bat dau cua doan dang xet
 
+  //Neu left nam ngoai pham vi mang
   if(left >= n - currentSize || left < 0){
     return;
   }
 
-  int mid = left + currentSize - 1; //Ket thuc cua doan thu nhat 
-  int right = min_local(left + width - 1, n - 1);
+  int mid = left + currentSize - 1; //Ket thuc cua doan thu nhat (trai)
+  int right = min_local(left + width - 1, n - 1); //Ket thuc cua doan thu hai (phai)
 
-  int nTot = right - left + 1; //So threads duoc sinh ra
+  int nTot = right - left + 1; //So threads duoc sinh ra (Tong so phan tu trong doan [left, right])
 
-  if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu phan tu lon hon nguong de co the song song kernel)
+  if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu phan tu lon hon nguong de co the song song kernel
     int numThreadsPerBlock = 1024; //1024 thread moi block
     int numBlocks = (nTot + numThreadsPerBlock - 1) / numThreadsPerBlock; //So blocks duoc sinh ra theo so phan tu mang
 
@@ -144,8 +145,8 @@ __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int widt
 
 void mergeSortGPU(long *arr, int n){
   //Hai mang trong device (GPU)
-  long *deviceArr;
-  long *auxArr;
+  long *deviceArr; //Mang chua phan tu sau khi da sap xep xong (cuoi cung)
+  long *auxArr; //Mang trung gian luu ket qua cua tung buoc hop nhat
 
   //Uu tien su dung cache L1 hon shared memory -> Toi uu hieu suat cho kernel nho
   cudaSafeCall(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
@@ -154,15 +155,17 @@ void mergeSortGPU(long *arr, int n){
   cudaSafeCall(cudaMemcpy(deviceArr, arr, n * sizeof(long), cudaMemcpyHostToDevice)); //Sao chep du lieu tu mang arr(host - CPU) vao deviceArr(GPU)
 
   //Duyet qua cac kich thuoc doan con: 1, 2, 4, 8,...n
-  //Moi lan lap se merge cac doan co cung kich thuoc
+  //Moi lan lap se merge cac doan co do dai currentSize
   for(int currentSize = 1; currentSize < n; currentSize *= 2){
     //Tinh toan tham so kernel
-    int width = currentSize * 2; 
+    int width = currentSize * 2; //Kich thuoc mang se tang len 2 lan (2, 4, 8,..)
     int numSorts = (n + width - 1) / width; //So luong sorting thread sinh ra (so merge can thuc hien)
-    int numThreadsPerBlock = 32;
+    int numThreadsPerBlock = 32; 
     int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;
 
-    cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice));
+    cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice)); //Truoc khi hop nhat copy du lieu tu deviceArr sang auxArr
+    //Trong moi vong lap currentSize, no goi kernel mergeSort de xu ly nhieu doan nho song song 
+    //Trong kernel mergeSort, neu doan mang du lon thi ta tiep tuc goi 1 kernel con mergeKernel() de song song hoa qua trinh merge tung phan tu trong doan do
     mergeSort <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, width);
     cudaDeviceSynchronize(); //__host__ function
     cudaCheckError();

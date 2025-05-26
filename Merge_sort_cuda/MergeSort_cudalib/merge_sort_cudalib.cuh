@@ -63,6 +63,11 @@ __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot);
  * do trong ham nay dung getIndex() co su dung binarySearch(), von chi chinh xac 
  * khi moi phan tu la duy nhat de co the xac dinh vi tri chen
  * @note Ham nay duoc goi boi mergeSort()
+ * @param arr Mang sau khi da tim duoc chinh xac index thi se cho vao
+ * @param aux Mang tam, dung de luu ket qua trung gian qua tung vong gop (merge)
+ * @param left vi tri ben trai cua mang 
+ * @param mid vi tri o giua cua mang 
+ * @param right vi tri ben phai cua mang
  */
 __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right);
 
@@ -77,6 +82,8 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
  * @details Moi thread xu ly mot cap mang con co kich thuoc currentSize. Xac dinh chi so left, mid, right
  * cho mang hien tai. Neu kich thuoc mang con lon hon 1 nguong nhat dinh, goi mergeKernel de hop nhat song song
  * Nguoc lai, neu mang be hon nguong nhat dinh, dung merge tuan tu
+ * @param arr Mang chua phan tu sau khi da sap xep 
+ * @param aux Mang tam, mang chua ket qua trung gian sau moi lan merge 
  * @param width Do dai doan can merge (width = 2 * currentSize)
  * @note Ham nay duoc goi boi mergeSortGPU()
  */
