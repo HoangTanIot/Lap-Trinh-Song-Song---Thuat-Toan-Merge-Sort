@@ -44,8 +44,8 @@ __device__ int binarySearch(long *arr, int val, int left, int right);
 
 /**
  * @brief Tim vi tri chinh xac cua phan tu subAux[ownIndex] trong mang gop cuoi cung bang cach: 
- *       - Xac dinh xem phan tu do thuoc mang con nao 
- *       - Tim xem bao nhieu phan tu trong mang con lai nho hon no
+ * \brief - Xac dinh xem phan tu do thuoc mang con nao 
+ * \brief - Tim xem bao nhieu phan tu trong mang con lai nho hon no
  * 
  * @param subAux Mang chua 2 mang con da sap xep dinh lai nhau 
  * @param ownIndex Vi tri cua phan tu dang xet trong subAux 

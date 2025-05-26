@@ -8,7 +8,7 @@ Thứ nhất, hãy hiểu về GPU core khác thế nào với CPU core
  - CUDA cores là đơn vị rất nhỏ, đơn giản, chuyên làm tác vụ tính toán song song nhẹ
  - Ví dụ: NVIDIA RTX 3050 (đang dùng) có 2560 cores 
  - GPU gôm nhiều SM (Stream Multiprocessor):
-  * Mỗi SM chứa hàng chục đến hàng trăm CUDA cores
+  * Mỗi SM chứa hàng chục đến hàng trăm CUDA cores (tùy theo kiến trúc GPU thế hệ khác nhau)
  - Khi bạn chạy CUDA kernel:
   * Hàng nghìn luồng (threads) được chia ra chạy trên các CUDA cores theo nhóm một
   * Các threads được tổ chức thành wrap (32 threads), phải chạy đồng bộ cùng lúc và cùng thực hiện 1 thao tác trên nhiều dữ liệu nên NẾU một thread rẽ nhánh để đệ quy còn thread khác thì không -> Sẽ gây ra hiện tượng phân kỳ (divergence) -> Giảm hiệu suất GPU 

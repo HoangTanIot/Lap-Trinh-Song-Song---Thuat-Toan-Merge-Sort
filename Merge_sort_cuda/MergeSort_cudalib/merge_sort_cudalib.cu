@@ -40,20 +40,21 @@ __device__ int binarySearch(long *arr, int val, int left, int right){
 }
 
 __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot){
-  int scanIndex;
-  int upperBound;
-  bool partOfFistArr = ownIndex < nLeft; //Xem xem phan tu hien tai thuoc mang ben nao (xet index cua subAux)
+  int scanIndex; //Bien luu chi so bang dau cho binary search 
+  int upperBound; //La gioi han tren cho binary search 
+  bool isLeft = ownIndex < nLeft; //Xem xem phan tu hien tai thuoc mang ben nao (xet index cua subAux)
 
-  if(partOfFistArr){ //Dung => Phan tu thuoc mang trai => tim xem bao nhieu phan tu ben phai nho hon no
-    scanIndex = nLeft;
-    upperBound = nTot;
-  }else{
-    scanIndex = 0;
-    upperBound = nLeft;
+  if(isLeft){ //Dung => Phan tu thuoc mang trai => tim xem bao nhieu phan tu ben PHAI nho hon no
+    scanIndex = nLeft; //la chi so dau tien cua mang phai 
+    upperBound = nTot; //Gioi han tren (diem cuoi cua mang phai)
+  }else{ //Neu phan tu thuoc mang phai => tim xem bao nhieu phan tu ben TRAI nho hon no
+    scanIndex = 0; //la chi so dau tien cua mang trai
+    upperBound = nLeft; //sau cuoi mang trai
   }
 
+  //Tim kiem bang Binary Search cho 2 nua TRAI hoac PHAI do 
   scanIndex = binarySearch(subAux, subAux[ownIndex], scanIndex, upperBound - 1);
-  return ownIndex + scanIndex - nLeft;
+  return ownIndex + scanIndex - nLeft; //Tra ve vi tri cho phan tu roi nem vao mang arr
 } 
 
 __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
@@ -76,7 +77,7 @@ __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
 
   //Xac dinh phan tu aux[left + idx] dang thuoc mang con trai hay phai
   //Sau do se thuc hien tim kiem nhi phan trong mang con lai de dem xem co bao nhieu phan tu nho hon no
-  //Nham xac dinh vi tri chinh xac sau khi merge
+  //Nham xac dinh vi tri chinh xac sau khi merge roi day vao trong mang arr cuoi cung
   int arrIndex = getIndex(&aux[left], idx, nLeft, nTot);
   arr[left + arrIndex] = aux[left + idx]; //Ghi phan tu vao dung vi tri trong mang arr
 
