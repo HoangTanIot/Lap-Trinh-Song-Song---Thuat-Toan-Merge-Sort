@@ -84,12 +84,12 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
  * Nguoc lai, neu mang be hon nguong nhat dinh, dung merge tuan tu
  * @param arr Mang chua phan tu sau khi da sap xep 
  * @param aux Mang tam, mang chua ket qua trung gian sau moi lan merge 
- * @param width Do dai mang sau khi gop 2 mang con dang can merge do lai (width = 2 * currentSize)
+ * @param afterSize Do dai mang sau khi gop 2 mang con dang can merge do lai (afterSize = 2 * currentSize)
  * @param currentSize Kich thuoc hien tai cua mang con dang merge (1 phan tu, 2 phan tu, 4 phan tu,...)
  * \note - Ham nay duoc goi boi mergeSortGPU()
  * \note - Moi thread dam nhiem 1 lan merge
  */
-__global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int n, int width);
+__global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int n, int afterSize);
 
 /**
  * @brief MergeSort tren GPU
@@ -114,7 +114,7 @@ void mergeSortGPU(long *arr, int n);
  */
 __device__ unsigned int getIndex_kernel(dim3 *threads, dim3 *blocks);
 
-__global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long width, long slices, dim3 *threads, dim3 *blocks);
+__global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long afterSize, long slices, dim3 *threads, dim3 *blocks);
 
 /**
  * @brief Duoc goi boi gpu_mergeSort_ver2()

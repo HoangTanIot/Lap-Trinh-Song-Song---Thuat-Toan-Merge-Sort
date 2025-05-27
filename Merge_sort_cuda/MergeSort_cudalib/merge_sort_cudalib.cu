@@ -113,17 +113,17 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
   }
 }
 
-__global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int n, int width){
+__global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int n, int afterSize){
   int idx = blockIdx.x * blockDim.x + threadIdx.x; 
 
-  int left = idx * width; //Chi so bat dau cua doan dang xet
+  int left = idx * afterSize; //Chi so bat dau cua doan dang xet
   /**
    * Thread thu idx se thuc hien gop 2 mang con bat dau tu phan tu `left`
-   * Moi mang con dai currentSize, nen thread nay se merge doan tu `left` den `left + width - 1`
-   * Gia su: currentSize = 2 -> width = currentSize * 2 = 4 (sau khi gop mang 2 phan tu thi se duoc mang co do dai 4 phan tu), idx = 3
-   * => left = idx * width = 3 * 4 = 12;
+   * Moi mang con dai currentSize, nen thread nay se merge doan tu `left` den `left + afterSize - 1`
+   * Gia su: currentSize = 2 -> afterSize = currentSize * 2 = 4 (sau khi gop mang 2 phan tu thi se duoc mang co do dai 4 phan tu), idx = 3
+   * => left = idx * afterSize = 3 * 4 = 12;
    * => mid = left + currentSize - 1 = 12 + 2 - 1 = 13
-   * => right = left + width - 1 = 12 + 4 - 1 = 15
+   * => right = left + afterSize - 1 = 12 + 4 - 1 = 15
    * -> Thread SO 3 se merge 2 doan con:
    *  * Mang con trai: arr[12], arr[13]
    *  * Mang con phai: arr[14], arr[15]
@@ -135,7 +135,7 @@ __global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int 
   }
 
   int mid = left + currentSize - 1; //Ket thuc cua mang con ben trai
-  int right = min_local(left + width - 1, n - 1); //Ket thuc cua mang con ben phai
+  int right = min_local(left + afterSize - 1, n - 1); //Ket thuc cua mang con ben phai
 
   int nTot = right - left + 1; //So threads duoc sinh ra (Tong so phan tu trong doan [left, right])
 
@@ -166,15 +166,15 @@ void mergeSortGPU(long *arr, int n){
   //Moi lan lap se merge cac doan co do dai currentSize, sau moi vong lap so phan tu trong mang se tang len 2 lan
   for(int currentSize = 1; currentSize < n; currentSize *= 2){
     //Tinh toan tham so kernel
-    int width = currentSize * 2; //Bien luu tong do dai cua 2 mang con sau khi duoc merge (2 -> 4 -> 8,...)
-    int numSorts = (n + width - 1) / width; //So luong sorting thread sinh ra (so merge can thuc hien)
+    int afterSize = currentSize * 2; //Bien luu tong do dai cua 2 mang con sau khi duoc merge (2 -> 4 -> 8,...)
+    int numSorts = (n + afterSize - 1) / afterSize; //So luong sorting thread sinh ra (so merge can thuc hien)
     int numThreadsPerBlock = 32; 
     int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;
 
     cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice)); //Truoc khi hop nhat copy du lieu tu deviceArr sang auxArr
     //Trong moi vong lap currentSize, no goi kernel mergeSort de xu ly nhieu doan nho song song 
     //Trong kernel mergeSort, neu doan mang du lon thi ta tiep tuc goi 1 kernel con mergeKernel() de song song hoa qua trinh merge tung phan tu trong doan do
-    mergeSort_coordinate <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, width);
+    mergeSort_coordinate <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, afterSize);
     cudaDeviceSynchronize(); //__host__ function
     cudaCheckError();
   }
@@ -212,18 +212,18 @@ __device__ void gpu_bottomUpMerge_ver2(long *arr, long *aux, long left, long mid
   }
 }
 
-__global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long width, long slices, dim3 *threads, dim3 *blocks){
+__global__ void gpu_mergeSort_ver2(long *arr, long *aux, long n, long afterSize, long slices, dim3 *threads, dim3 *blocks){
   unsigned int idx = getIndex_kernel(threads, blocks);
-  long left = width * idx * slices, mid, right;
+  long left = afterSize * idx * slices, mid, right;
 
   for(long slice = 0; slice < slices; slice++){
     if(left >= n){
       break;
     }
-    mid = min_local(left + (width >> 1), n);
-    right = min_local(left + width, n);
+    mid = min_local(left + (afterSize >> 1), n);
+    right = min_local(left + afterSize, n);
     gpu_bottomUpMerge_ver2(arr, aux, left, mid, right);
-    left += width;
+    left += afterSize;
   }
 }
 
@@ -250,10 +250,10 @@ void mergeSortGPU_ver2(long *arr, long n, dim3 threadsPerBlock, dim3 blocksPerGr
   long nThreads = threadsPerBlock.x * threadsPerBlock.y * threadsPerBlock.z * 
                  blocksPerGrid.x * blocksPerGrid.y * blocksPerGrid.z;
 
-  for(int width = 2; width < (n << 1); width <<= 1){
-    long slices = n / ((nThreads) * width) + 1;
+  for(int afterSize = 2; afterSize < (n << 1); afterSize <<= 1){
+    long slices = n / ((nThreads) * afterSize) + 1;
 
-    gpu_mergeSort_ver2 <<< blocksPerGrid, threadsPerBlock >>>(A, B, n, width, slices, deviceThreads, deviceBlocks);
+    gpu_mergeSort_ver2 <<< blocksPerGrid, threadsPerBlock >>>(A, B, n, afterSize, slices, deviceThreads, deviceBlocks);
 
     A = A == deviceArr ? auxArr : deviceArr;
     B = B == deviceArr ? auxArr : deviceArr;
