@@ -40,8 +40,8 @@ __device__ int binarySearch(long *arr, int val, int left, int right){
 }
 
 __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot){
-  int scanIndex; //Bien luu chi so bang dau cho binary search 
-  int upperBound; //La gioi han tren cho binary search 
+  int scanIndex; //Bien luu gioi han duoi cho binary search
+  int upperBound; //Bien luu gioi han tren cho binary search 
   bool isLeft = ownIndex < nLeft; //Xem xem phan tu hien tai thuoc mang ben nao (xet index cua subAux)
 
   if(isLeft){ //Dung => Phan tu thuoc mang trai => tim xem bao nhieu phan tu ben PHAI nho hon no
@@ -53,8 +53,8 @@ __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot){
   }
 
   //Tim kiem bang Binary Search cho 2 nua TRAI hoac PHAI do 
-  scanIndex = binarySearch(subAux, subAux[ownIndex], scanIndex, upperBound - 1);
-  return ownIndex + scanIndex - nLeft; //Tra ve vi tri cho phan tu roi nem vao mang arr
+  scanIndex = binarySearch(subAux, subAux[ownIndex], scanIndex, upperBound - 1); //Tra ve so luong phan tu nho hon tu phia con lai
+  return ownIndex + scanIndex - nLeft; //Tru di nLeft vi mang subAux dang duoc danh chi so tu [0]
 } 
 
 __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
@@ -66,9 +66,9 @@ __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
    */
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  int nLeft = mid - left + 1; //Xac dinh vi tri ben trai
-  int nRight = right - mid; //Xac dinh 
-  int nTot = nLeft + nRight;
+  int nLeft = mid - left + 1; //Xac dinh vi tri ket thuc cua mang ben trai (= So luong phan tu mang trai)
+  int nRight = right - mid; //Xac dinh vi tri bat dau cua mang ben phai (= So luong phan tu mang phai)
+  int nTot = nLeft + nRight; //Tong so phan tu cua ca 2 mang 
 
   //Neu thread co chi so vuot ngoai tong so phan tu thi dung lai - khong lam gi ca
   if(idx >= nTot){
@@ -80,9 +80,6 @@ __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
   //Nham xac dinh vi tri chinh xac sau khi merge roi push vao trong mang arr cuoi cung
   int arrIndex = getIndex(&aux[left], idx, nLeft, nTot);
   arr[left + arrIndex] = aux[left + idx]; //Ghi phan tu vao dung vi tri trong mang arr
-
-  //Loi dong nay khi build vi std::cout la ham cua CPU, khong duoc phep dung trong __global__ hay __device__
-  // std::cout << "Index " << idx << " assigns " << aux[left + idx] << " to " << left + arrIndex << std::endl;
 }
 
 __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int right){
@@ -116,19 +113,29 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
   }
 }
 
-// __global__: Ham duoc goi tren CPU nhung chay tren GPU
 __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int width){
   int idx = blockIdx.x * blockDim.x + threadIdx.x; 
 
   int left = idx * width; //Chi so bat dau cua doan dang xet
+  /**
+   * Thread thu idx se thuc hien gop 2 mang con bat dau tu phan tu `left`
+   * Moi mang con dai currentSize, nen thread nay se merge doan tu `left` den `left + width - 1`
+   * Gia su: currentSize = 2 -> width = currentSize * 2 = 4 (sau khi gop mang 2 phan tu thi se duoc mang co do dai 4 phan tu), idx = 3
+   * => left = idx * width = 3 * 4 = 12;
+   * => mid = left + currentSize - 1 = 12 + 2 - 1 = 13
+   * => right = left + width - 1 = 12 + 4 - 1 = 15
+   * -> Thread SO 3 se merge 2 doan con:
+   *  * Mang con trai: arr[12], arr[13]
+   *  * Mang con phai: arr[14], arr[15]
+   */
 
   //Neu left nam ngoai pham vi mang
   if(left >= n - currentSize || left < 0){
     return;
   }
 
-  int mid = left + currentSize - 1; //Ket thuc cua doan thu nhat (trai)
-  int right = min_local(left + width - 1, n - 1); //Ket thuc cua doan thu hai (phai)
+  int mid = left + currentSize - 1; //Ket thuc cua mang con ben trai
+  int right = min_local(left + width - 1, n - 1); //Ket thuc cua mang con ben phai
 
   int nTot = right - left + 1; //So threads duoc sinh ra (Tong so phan tu trong doan [left, right])
 
@@ -154,11 +161,12 @@ void mergeSortGPU(long *arr, int n){
   cudaSafeCall(cudaMalloc((void**)&auxArr, n * sizeof(long)));
   cudaSafeCall(cudaMemcpy(deviceArr, arr, n * sizeof(long), cudaMemcpyHostToDevice)); //Sao chep du lieu tu mang arr(host - CPU) vao deviceArr(GPU)
 
-  //Duyet qua cac kich thuoc doan con: 1, 2, 4, 8,...n
-  //Moi lan lap se merge cac doan co do dai currentSize
+  //currentSize: kich thuoc hien tai cua mang con dang merge
+  //Duyet qua cac mang con co kich thuoc currentSize = 1, 2, 4, 8,...n
+  //Moi lan lap se merge cac doan co do dai currentSize, sau moi vong lap so phan tu trong mang se tang len 2 lan
   for(int currentSize = 1; currentSize < n; currentSize *= 2){
     //Tinh toan tham so kernel
-    int width = currentSize * 2; //Kich thuoc mang se tang len 2 lan (2, 4, 8,..)
+    int width = currentSize * 2; //Bien luu tong do dai cua 2 mang con sau khi duoc merge (2 -> 4 -> 8,...)
     int numSorts = (n + width - 1) / width; //So luong sorting thread sinh ra (so merge can thuc hien)
     int numThreadsPerBlock = 32; 
     int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;

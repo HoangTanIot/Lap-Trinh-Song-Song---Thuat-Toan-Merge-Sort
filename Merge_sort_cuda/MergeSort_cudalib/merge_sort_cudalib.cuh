@@ -43,8 +43,8 @@ __host__ bool isSorted(long *arr, long n);
 __device__ int binarySearch(long *arr, int val, int left, int right);
 
 /**
- * @brief Tim vi tri chinh xac cua phan tu subAux[ownIndex] trong mang gop cuoi cung bang cach: 
- * \brief - Xac dinh xem phan tu do thuoc mang con nao 
+ * @brief Tim vi tri chinh xac cua phan tu subAux[ownIndex] trong mang bang cach
+ * \brief - Xac dinh xem phan tu do thuoc mang con nao (trai hay phai)
  * \brief - Tim xem bao nhieu phan tu trong mang con lai nho hon no
  * 
  * @param subAux Mang chua 2 mang con da sap xep dinh lai nhau 
@@ -79,22 +79,30 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
 
 /**
  * @brief Dieu phoi qua trinh Bottom-Up Merge Sort  
- * @details Moi thread xu ly mot cap mang con co kich thuoc currentSize. Xac dinh chi so left, mid, right
+ * @note Moi thread xu ly mot cap mang con co kich thuoc currentSize. Xac dinh chi so left, mid, right
  * cho mang hien tai. Neu kich thuoc mang con lon hon 1 nguong nhat dinh, goi mergeKernel de hop nhat song song
  * Nguoc lai, neu mang be hon nguong nhat dinh, dung merge tuan tu
  * @param arr Mang chua phan tu sau khi da sap xep 
  * @param aux Mang tam, mang chua ket qua trung gian sau moi lan merge 
- * @param width Do dai doan can merge (width = 2 * currentSize)
- * @note Ham nay duoc goi boi mergeSortGPU()
+ * @param width Do dai mang sau khi gop 2 mang con dang can merge do lai (width = 2 * currentSize)
+ * @param currentSize Kich thuoc hien tai cua mang con dang merge (1 phan tu, 2 phan tu, 4 phan tu,...)
+ * \note - Ham nay duoc goi boi mergeSortGPU()
+ * \note - Moi thread dam nhiem 1 lan merge
  */
 __global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int width);
 
 /**
  * @brief MergeSort tren GPU
+ * \brief - Ham nay se chia mang ban dau thanh cac mang co kich thuoc tu 1 phan tu/mang
+ * \brief - Sau do chay vong lap voi kich thuoc phan tu trong mang tang dan (1, 2, 4, 8,...) va chieu rong mang sau khi gop cung tang (2, 4, 8,..)
+ * \brief - Trong moi vong lap, goi kernel de thuc hien gop (merge) cac phan tu lai
+ * 
  * @param arr Mang tu CPU -> chuyen qua GPU de thuc hien
- * \note Cap bo nho thong nhat (unified memory) cho deviceArr va auxArr, cho phep CPU & GPU cung truy cap
- * Cach nay giup khong can copy qua lai thu cong tu CPU qua GPU (cudaMemcpy())
-  \note CPU <------> |   Unified Memory    | <------> GPU
+ * @param n So luong phan tu can merge sort
+ * 
+ * \note - Cap bo nho thong nhat (unified memory) cho deviceArr va auxArr, cho phep CPU & GPU cung truy cap
+ * \note - Cach nay giup khong can copy qua lai thu cong tu CPU qua GPU (cudaMemcpy())
+  \note - CPU <------> |   Unified Memory    | <------> GPU
  */
 void mergeSortGPU(long *arr, int n);
 
