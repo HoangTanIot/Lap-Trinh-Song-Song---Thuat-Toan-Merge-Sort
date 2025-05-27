@@ -89,7 +89,7 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
  * \note - Ham nay duoc goi boi mergeSortGPU()
  * \note - Moi thread dam nhiem 1 lan merge
  */
-__global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int width);
+__global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int n, int width);
 
 /**
  * @brief MergeSort tren GPU

@@ -113,7 +113,7 @@ __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int righ
   }
 }
 
-__global__ void mergeSort(long *arr, long *aux, int currentSize, int n, int width){
+__global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int n, int width){
   int idx = blockIdx.x * blockDim.x + threadIdx.x; 
 
   int left = idx * width; //Chi so bat dau cua doan dang xet
@@ -174,7 +174,7 @@ void mergeSortGPU(long *arr, int n){
     cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice)); //Truoc khi hop nhat copy du lieu tu deviceArr sang auxArr
     //Trong moi vong lap currentSize, no goi kernel mergeSort de xu ly nhieu doan nho song song 
     //Trong kernel mergeSort, neu doan mang du lon thi ta tiep tuc goi 1 kernel con mergeKernel() de song song hoa qua trinh merge tung phan tu trong doan do
-    mergeSort <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, width);
+    mergeSort_coordinate <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, width);
     cudaDeviceSynchronize(); //__host__ function
     cudaCheckError();
   }
