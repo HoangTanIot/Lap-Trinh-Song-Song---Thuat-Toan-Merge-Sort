@@ -13,7 +13,17 @@
 #include <device_launch_parameters.h>
 
 #define min_local(a, b) ((a) < (b) ? (a) : (b))
-#define MERGE_PARALLEL_THRESHOLD 32768 //Giai thich vi sao lai phai nguong nay thi moi chay duoc 100tr phan tu ??? (Phan cung ?)
+
+/** 
+ * @brief Day la nguong quan trong de co the benchmark duoc den gioi han cua chuong trinh (16384, 32768, 65536,...)
+ * @note Ly do boi vi:
+ * \note - Tuy vao suc manh cua GPU thi nen set threshold de khong bi vuot qua tai nguyen cua GPU
+ * \note - Moi lan goi kernel CUDA la mot cuoc goi ton tai nguyen: kernel phai duoc cau hinh, phan phat luong, dong bo bo nho
+ * \note - Neu ta goi kernel cho nhung doan mang qua nho (8, 16, 32,...phan tu) thi chi phi goi kernel con lon hon ca viec sap xep bang CPU tuan tu
+ * gay ra overhead tren kernel, gay chiem tai nhieu tai nguyen, vuot qua suc chua cua GPU 
+ * 
+*/
+#define MERGE_PARALLEL_THRESHOLD 32768 
 /**
  * @brief Co ban ve kien truc torng GPU
  * @param threadsPerBlock So luong moi thread trong moi khoi (block) - Quyet dinh do song song trong moi block,

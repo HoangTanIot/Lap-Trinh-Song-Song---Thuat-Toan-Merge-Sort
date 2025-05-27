@@ -139,12 +139,12 @@ __global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int 
 
   int nTot = right - left + 1; //So threads duoc sinh ra (Tong so phan tu trong doan [left, right])
 
-  if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu phan tu lon hon nguong de co the song song kernel
+  if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu so luong phan tu can merge lon hon nguong de co the song song kernel ma khong gay overhead
     int numThreadsPerBlock = 1024; //1024 thread moi block
     int numBlocks = (nTot + numThreadsPerBlock - 1) / numThreadsPerBlock; //So blocks duoc sinh ra theo so phan tu mang
 
     mergeKernel <<< numBlocks, numThreadsPerBlock >>>(arr, aux, left, mid, right);
-    cudaCheckErrorDev();
+    cudaCheckErrorDev(); //Check loi sau moi lan goi kernel
   }else{ //Neu phan tu nho hon nguong quy dinh (de tranh overhead)
     merge(arr, aux, left, mid, right);
   }
