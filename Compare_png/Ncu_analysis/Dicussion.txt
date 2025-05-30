@@ -2,3 +2,4 @@
 a. Tóm tắt nhanh 
  - 
 2. Cải thiện 
+Viết Kernel tối ưu nghĩa là giảm dùng shared memory và register per thread, để GPU chứa nhiều block cùng lúc hơn, giúp tăng Occupancy và từ đó tăng hiệu suất
