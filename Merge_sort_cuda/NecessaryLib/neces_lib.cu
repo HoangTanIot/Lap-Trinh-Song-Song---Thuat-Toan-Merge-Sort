@@ -31,8 +31,8 @@ __host__ double elaspedTimer(void){
   return elasped_time;
 }
 
-void swapPointers(int **a, int **b){
-  int *temp = *a; 
+__host__ void swapPointers(long **a, long **b){
+  long *temp = *a; 
   *a = *b; 
   *b = temp;
 }

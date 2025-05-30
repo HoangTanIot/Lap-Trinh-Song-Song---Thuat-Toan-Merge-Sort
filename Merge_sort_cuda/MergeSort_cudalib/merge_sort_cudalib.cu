@@ -29,37 +29,50 @@ __host__ bool isSorted(long *arr, long n){
 /************************** VERSION 1 ***************************/
 
 __device__ int binarySearch(long *arr, int val, int left, int right){
-  if(right <= left){ //Khi index right == index left (con 1 phan tu)
-    return (val > arr[left] ? (left + 1) : left); //Neu gia tri can tim (val) lon hon gia tri left
+  //==== CACH 1: Dung de quy de tim vi tri =====
+  // if(right <= left){ //Khi index right == index left (con 1 phan tu)
+  //   return (val > arr[left] ? (left + 1) : left); //Neu gia tri can tim (val) lon hon gia tri left
+  // }
+  // int mid = (left + right) / 2;
+  // if(val > arr[mid]){ //Neu gia tri can tim lon hon gia tri o giua 
+  //   return binarySearch(arr, val, mid + 1, right); //Bo het mang ben trai (be hon val), de quy tiep mang ben phai
+  // }
+  // return binarySearch(arr, val, left, mid); //Khong thi bo het mang ben phai (lon hon val), de quy tiep mang ben trai
+
+  //=== CACH 2: Cuda khong than thien voi de quy nen thu khong dung de quy cho binary search() nua =====
+  while(left < right){
+    int mid = (left + right) / 2;
+    if(val > arr[mid]){
+      left = mid + 1;
+    }else{
+      right = mid;
+    }
   }
-  int mid = (left + right) / 2;
-  if(val > arr[mid]){ //Neu gia tri can tim lon hon gia tri o giua 
-    return binarySearch(arr, val, mid + 1, right); //Bo het mang ben trai (be hon val), de quy tiep mang ben phai
-  }
-  return binarySearch(arr, val, left, mid); //Khong thi bo het mang ben phai (lon hon val), de quy tiep mang ben trai
+  //Loop ket thuc khi left == right
+  return (val > arr[left] ? (left + 1) : left);
 }
 
 __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot){
-  int scanIndex; //Bien luu gioi han duoi cho binary search
-  int upperBound; //Bien luu gioi han tren cho binary search 
+  int leftIndex; //Bien luu gioi han duoi cho binary search
+  int rightIndex; //Bien luu gioi han tren cho binary search 
   bool isLeft = ownIndex < nLeft; //Xem xem phan tu hien tai thuoc mang ben nao (xet index cua subAux)
 
-  if(isLeft){ //Dung => Phan tu thuoc mang trai => tim xem bao nhieu phan tu ben PHAI nho hon no
-    scanIndex = nLeft; //la chi so dau tien cua mang phai 
-    upperBound = nTot; //Gioi han tren (diem cuoi cua mang phai)
-  }else{ //Neu phan tu thuoc mang phai => tim xem bao nhieu phan tu ben TRAI nho hon no
-    scanIndex = 0; //la chi so dau tien cua mang trai
-    upperBound = nLeft; //sau cuoi mang trai
+  if(isLeft){ //Dung => Phan tu thuoc mang TRAI => tim xem bao nhieu phan tu ben PHAI nho hon no
+    leftIndex = nLeft; //la chi so dau tien cua mang phai
+    rightIndex = nTot; //Gioi han tren (diem cuoi cua mang phai)
+  }else{ //Neu phan tu thuoc mang PHAI => tim xem bao nhieu phan tu ben TRAI nho hon no
+    leftIndex = 0; //la chi so dau tien cua mang trai
+    rightIndex = nLeft; //sau cuoi mang trai
   }
 
-  //Tim kiem bang Binary Search cho 2 nua TRAI hoac PHAI do 
-  scanIndex = binarySearch(subAux, subAux[ownIndex], scanIndex, upperBound - 1); //Tra ve so luong phan tu nho hon tu phia con lai
-  return ownIndex + scanIndex - nLeft; //Tru di nLeft vi mang subAux dang duoc danh chi so tu [0]
+  //Tim kiem bang Binary Search cho 2 nua TRAI hoac PHAI do xem co bao nhieu phan tu be hon subAux[ownIndex] o mang doi dien
+  leftIndex = binarySearch(subAux, subAux[ownIndex], leftIndex, rightIndex - 1); //Tra ve vi tri can chen vao theo thu tu tang dan 
+  return ownIndex + leftIndex - nLeft; //Tru di nLeft vi mang subAux dang duoc danh chi so tu [0]
 } 
 
 __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
   /**
-   * @brief Tinh so thread trong gird cua CUDA, moi thread phu trach 1 phan tu tu aux[left..]
+   * @brief Tinh chi so toan cuc cua thread tren GPU, moi thread phu trach 1 phan tu tu aux[left..]
    * @param blockIdx Chi so block moi grid (0 -> gridDim.x - 1)
    * @param blockDim So thread moi block 
    * @param threadIdx Chi so thread hien tai trong block do (0 -> blockDim.x - 1)
@@ -75,11 +88,32 @@ __global__ void mergeKernel(long *arr, long *aux, int left, int mid, int right){
     return;
   }
 
-  //Xac dinh phan tu aux[left + idx] dang thuoc mang con trai hay phai
-  //Sau do se thuc hien tim kiem nhi phan trong mang con lai de dem xem co bao nhieu phan tu nho hon no
-  //Nham xac dinh vi tri chinh xac sau khi merge roi push vao trong mang arr cuoi cung
+  /**
+   * Xac dinh phan tu aux[left + idx] dang thuoc mang con trai hay phai
+   * Sau do se thuc hien tim kiem nhi phan trong mang con lai de dem xem co bao nhieu phan tu nho hon no
+   * Nham xac dinh vi tri chinh xac sau khi merge roi push vao trong mang arr cuoi cung
+  */
+
+  //==== GLOBAL MEMORY ====
   int arrIndex = getIndex(&aux[left], idx, nLeft, nTot);
   arr[left + arrIndex] = aux[left + idx]; //Ghi phan tu vao dung vi tri trong mang arr
+
+  //===== SHARED MEMORY ====
+  /**
+   * Copy du lieu tu global memory (aux) sang shared memory (shareAux) (dung shared memory thay cho global)
+   * Moi block se co 1 sharedAux rieng
+   * Doc du lieu tu global memory se rat cham
+  */
+  // extern __shared__ long shareAux[];
+  // if(threadIdx.x < nTot){
+  //   //Tung phan tu cua shareAux se tuong ung voi index so thread trong block
+  //   //Gia tri se duoc copy tu 
+  //   shareAux[threadIdx.x] = aux[left + threadIdx.x]; //Moi thread copy 1 phan tu
+  // }
+  // __syncthreads(); //Dam bao toan bo du lieu duoc copy xong 
+
+  // int arrIndex = getIndex(shareAux, threadIdx.x, nLeft, nTot);
+  // arr[left + arrIndex] = shareAux[threadIdx.x];
 }
 
 __host__ __device__ void merge(long *arr, long *aux, int left, int mid, int right){
@@ -140,10 +174,15 @@ __global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int 
   int nTot = right - left + 1; //So threads duoc sinh ra (Tong so phan tu trong doan [left, right])
 
   if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu so luong phan tu can merge lon hon nguong de co the song song kernel ma khong gay overhead
-    int numThreadsPerBlock = 1024; //1024 thread moi block
-    int numBlocks = (nTot + numThreadsPerBlock - 1) / numThreadsPerBlock; //So blocks duoc sinh ra theo so phan tu mang
+    int numThreadsPerBlock_mk = 256; //Toi uu tot cho SM -> Sinh ra nhieu block hon
+    int numBlocks_mk = (nTot + numThreadsPerBlock_mk - 1) / numThreadsPerBlock_mk; //So blocks duoc sinh ra theo so phan tu mang
 
-    mergeKernel <<< numBlocks, numThreadsPerBlock >>>(arr, aux, left, mid, right);
+    // CHAY TREN GLOBAL MEMORY
+    mergeKernel <<< numBlocks_mk, numThreadsPerBlock_mk >>>(arr, aux, left, mid, right);
+
+    //TRUYEN KICH THUOC SHARED MEMORY O DAY
+    // mergeKernel <<< numBlocks_mk, numThreadsPerBlock_mk , numThreadsPerBlock_mk * sizeof(long) >>>(arr, aux, left, mid, right);
+    
     cudaCheckErrorDev(); //Check loi sau moi lan goi kernel
   }else{ //Neu phan tu nho hon nguong quy dinh (de tranh overhead)
     merge(arr, aux, left, mid, right);
@@ -159,21 +198,30 @@ void mergeSortGPU(long *arr, int n){
   cudaSafeCall(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
   cudaSafeCall(cudaMalloc((void**)&deviceArr, n * sizeof(long)));
   cudaSafeCall(cudaMalloc((void**)&auxArr, n * sizeof(long)));
-  cudaSafeCall(cudaMemcpy(deviceArr, arr, n * sizeof(long), cudaMemcpyHostToDevice)); //Sao chep du lieu tu mang arr(host - CPU) vao deviceArr(GPU)
 
-  //currentSize: kich thuoc hien tai cua mang con dang merge
-  //Duyet qua cac mang con co kich thuoc currentSize = 1, 2, 4, 8,...n
-  //Moi lan lap se merge cac doan co do dai currentSize, sau moi vong lap so phan tu trong mang se tang len 2 lan
-  for(int currentSize = 1; currentSize < n; currentSize *= 2){
+  //Sao chep du lieu tu mang arr(host - CPU) vao deviceArr(GPU)
+  cudaSafeCall(cudaMemcpy(deviceArr, arr, n * sizeof(long), cudaMemcpyHostToDevice)); 
+
+  /**
+   * currentSize: kich thuoc hien tai cua mang con dang merge
+   * Duyet qua cac mang con co kich thuoc currentSize = 1, 2, 4, 8,...n
+   * Moi lan lap se merge cac doan co do dai currentSize, sau moi vong lap so phan tu trong mang se tang len 2 lan
+  */
+   for(int currentSize = 1; currentSize < n; currentSize *= 2){
     //Tinh toan tham so kernel
     int afterSize = currentSize * 2; //Bien luu tong do dai cua 2 mang con sau khi duoc merge (2 -> 4 -> 8,...)
     int numSorts = (n + afterSize - 1) / afterSize; //So luong sorting thread sinh ra (so merge can thuc hien)
-    int numThreadsPerBlock = 32; 
+    int numThreadsPerBlock = 24; //Thread cang nho thi so block cang lon -> Tan dung duoc het SM -> Tang Occupancy
     int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;
 
-    cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice)); //Truoc khi hop nhat copy du lieu tu deviceArr sang auxArr
-    //Trong moi vong lap currentSize, no goi kernel mergeSort de xu ly nhieu doan nho song song 
-    //Trong kernel mergeSort, neu doan mang du lon thi ta tiep tuc goi 1 kernel con mergeKernel() de song song hoa qua trinh merge tung phan tu trong doan do
+    //Truoc khi merge copy du lieu tu deviceArr sang auxArr de xu ly tren auxArr
+    cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice)); //Tranh de cudaMemcpy trong loop
+
+    /**
+     * Trong moi vong lap currentSize, no goi kernel mergeSort_coordinate() de xu ly nhieu doan nho song song 
+     * Trong kernel mergeSort_coordiante(), neu doan mang du lon thi ta tiep tuc goi 1 kernel con mergeKernel() 
+     * de song song hoa qua trinh merge tung phan tu trong doan do
+    */
     mergeSort_coordinate <<< numBlocks, numThreadsPerBlock >>> (deviceArr, auxArr, currentSize, n, afterSize);
     cudaDeviceSynchronize(); //__host__ function
     cudaCheckError();

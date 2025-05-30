@@ -21,10 +21,10 @@ __host__ double elaspedTimer(void);
 
 /**
  * @brief Ham nay nhan 2 con tro bac 2 
- * @param a la con tro tro den con tro kieu int 
- * @param b la con tro tro den con tro kieu int 
+ * @param a la con tro tro den con tro kieu int (tro dich)
+ * @param b la con tro tro den con tro kieu int (tro nguon)
  */
-void swapPointers(int **a, int **b);
+void swapPointers(long **a, long **b);
 
 void printArray(long *arr, int n);
 

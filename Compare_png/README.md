@@ -60,16 +60,32 @@ ___shared___ float buffer[4096]; //Moi block dùng shared memory khoang 16KB (40
  - Số block tối đa trên mỗi SM
 * Dù còn tài nguyên khác, nhưng nếu vượt số block tối đa thì cũng không chạy thêm được 
 
-> Shared memory và register là 2 yếu tố giới hạn mạnh mẽ số block 
+> Shared memory và register là 2 yếu tố giới hạn mạnh mẽ số block !<br>
 > ❗Nếu bạn khai báo nhiều shared memory hoặc dùng nhiều register -> Mỗi block chiếm nhiều tài nguyên -> Ít block có thể chạy cùng lúc
-> Ví dụ: 
+> Ví dụ: <br>
 > * Bạn dùng `__shared__ float temp[8192];` -> 8192 x 4  = 32KB per block 
 > * Nếu SM chỉ có 64KB shared memory -> Chỉ chạy cùng lúc tối đa 2 block
->❗Nếu mỗi thread dùng 64 register
+>❗Nếu mỗi thread dùng 64 register <br>
 > * 1024 threads/block x 64 = 65536 registers -> Hết sạch register -> Chỉ 1 block chạy 
 👉 Do đó:
 * Viết kernel tối ưu nghĩa là giảm dùng shared memory và register per thread, để GPU chứa nhiều block cùng lúc hơn ⇒ Tăng occupancy ⇒ Tăng hiệu suất.
+* CUDA thường sẽ tối ưu tốt hơn với 128, 256 hoặc 512 threads/block
 * ### Nên cấu hình sao cho mỗi SM có thể chứa được nhiều block (ít nhất 1 SM chứa đc 1 blocks, còn nếu nhiều hơn thì GPU sẽ tự động phân chia đều cho các SM và luôn phiên xử lý), tránh việc một block chứa quá nhiều threads (hoặc dùng quá nhiều shared memory và register), dẫn đến ít block chạy đồng thời trên SM, gây lãng phí SM, nên chia nhỏ ra nhiều blocks để SM nào cũng phải hoạt động ###
+
+❌ Bad case
+```cpp
+<<<16, 1024>>>; //16 blocks, mỗi block 1024 threads -> Tổng 16,384 threads 
+```
+* Nếu GPU có 16 SM, mỗi SM chạy được 1 block -> OK
+* Nhưng không có block "Dự phòng", nên khi 1 block đang `__syncthread()` hoặc chờ memory, SM đó sẽ rảnh rỗi !
+
+✅ Good case:
+```cpp
+<<<64, 256>>> //64 blocks, mỗi blocks 256 threads -> Tổng 16,384 threads
+```
+* Nếu GPU có 16 SM, mỗi SM có thể giữ 2-4 blocks (tùy vào resource dùng)
+* Dễ đạt được 2 hoặc hon block per SM, giúp che độ trễ (latency hiding)
+* Occupancy tăng thì performance tăng 
 
 **👉 Lệnh sử dụng:**
 ```bash

@@ -43,23 +43,30 @@ __host__ bool isSorted(long *arr, long n);
 /************************** VERSION 1 ***************************/
 
 /**
- * @brief Cay nhi phan tim kiem duoc su dung tren day so da duoc sap xep tang dan hoac giam dan
+ * @brief - Cay nhi phan tim kiem duoc su dung tren day so da duoc sap xep tang dan hoac giam dan
+ * \brief - Dung de tim so phan tu nho hon val trong pham vi [left, right]
+ * 
  * \note Y tuong thuat toan: o moi lan tim kiem tren doan [L, R] thi ban se tim ra phan tu dung giua va so sanh
  * voi phan tu X, vi mang da sap xep theo thu tu nen khi so sanh X voi phan tu dung giua ban co the loai bo di 
  * 1 nua khoang tim kiem, cu nhu vay thi doan ban can tim kiem se giam di 1/2 sau moi lan
- * \note Vi du mang co 1 ty phan tu thi ban chi can tim kiem 31 lan 
- * \note Do phuc tap O(logN)    
+ * \note - Vi du mang co 1 ty phan tu thi ban chi can tim kiem 31 lan 
+ * \note - Do phuc tap O(logN)    
+ * 
+ * @return - Tra ve vi tri (index) cua phan tu nho hon de thoa man thu tu tang dan
  */
 __device__ int binarySearch(long *arr, int val, int left, int right);
 
 /**
- * @brief Tim vi tri chinh xac cua phan tu subAux[ownIndex] trong mang bang cach
+ * @brief Tim vi tri chinh xac cua phan tu `subAux[ownIndex]` trong mang bang cach
  * \brief - Xac dinh xem phan tu do thuoc mang con nao (trai hay phai)
- * \brief - Tim xem bao nhieu phan tu trong mang con lai nho hon no
+ * \brief - Tim xem bao nhieu phan tu trong mang con lai nho hon no (dung `binarySearch()`)
+ * 
+ * @return - Tra ve vi tri (index) cua phan tu theo thu tu tang dan 
+ * (vi tri do se duoc dung sap xep vao mang arr cuoi cung)
  * 
  * @param subAux Mang chua 2 mang con da sap xep dinh lai nhau 
  * @param ownIndex Vi tri cua phan tu dang xet trong subAux 
- * @param nLeft So luong phan tu o mang trai (sub-array 1)
+ * @param nLeft So luong phan tu o mang trai (Cung la index cua phan tu dau tien cua mang phai)
  * @param nTot  Tong so phan tu(nLeft + mang phai)
  */
 __device__ int getIndex(long *subAux, int ownIndex, int nLeft, int nTot);
