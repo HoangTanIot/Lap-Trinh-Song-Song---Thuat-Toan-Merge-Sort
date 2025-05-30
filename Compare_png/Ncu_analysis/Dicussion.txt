@@ -1,5 +1,42 @@
 1.Nhận xét về kết quả log 
 a. Tóm tắt nhanh 
- - 
-2. Cải thiện 
-Viết Kernel tối ưu nghĩa là giảm dùng shared memory và register per thread, để GPU chứa nhiều block cùng lúc hơn, giúp tăng Occupancy và từ đó tăng hiệu suất
+==== Occupancy và giới hạn tài nguyên trên mỗi SM ====
+ - Block limit SM: Tối đa 16 blocks/SM
+ - Block limit register: Giới hạn 64 blocks do register
+ - Block Limit Shared Mem: Giới hạn 16 blocks do shared memory 
+ - Block limit warps: Giới hạn 48 blocks do số lượng warps (32 threads/warp)
+ - Theoretical Occupancy: 33.33% (rất thấp)
+ - Achieved Occupancy: 63.52% (do thực tế vẫn có thể tận dụng tốt hơn chút nhờ shared memory ít dùng hết)
+ - Achieved Active Warps per SM: 30.49 (gần 1/3 so với lý thuyết tối đa là 96 warps)
+=> Thấp vì kernel sử dụng quá nhiều tài nguyên per block, (register/shared mem), khiến không thể nhét nhiều block vào 1 SM
+
+==== Launch Statics (Thông tin về về kernel Launch hiện tại của chương trình) ====
+ - Block Size: 32 threads/block 
+ - Grid Size: 12 blocks -> Tổng cộng chi phí 12 * 32 = 384 threads 
+ - Register per thread: 32 registers/thread
+ - Static Shared Mem per Block: 1.02KB (~1020 bytes)
+ - Shared Mem Configuration Size: 16.38KB 
+ - SM Count: 16 SMs, nhưng bạn chỉ chạy 12 blocks tổng cộng 
+=> GPU có 16 SMs, nhưng chỉ có 12 blocks -> Bạn chỉ sử dụng 12/16 SM = 75 % tài nguyên SM 
+
+==== Compute & Memory Performance ====
+ - SM (compute) utilzation: 71.66 % (Tạm ổn)
+ - Memory throughput: 32.69 % -> Memory chưa phải nút thắt 
+ - Tốc độ DRAM active cycle cao hơn trung bình L1 và L2 -> Cũng ổn
+
+=>> Vấn đề chính: 
+ - Grid nhỏ (12 blocks), trong khi có 16 SM -> SM không tận dụng hết 
+ - Occupancy thấp (33.3 %) do kernel xài nhiều tài nguyên/block
+
+2. Cải thiện & Hướng giải quyết
+A. Tăng số lượng blocks trong Grid
+ - Hiện tại: Grid size = 12 
+ - Đề xuất: Tăng lên ít nhất 16 blocks (tối thiểu 1 block/SM), tốt hơn là vài chục đến hàng trăm blocks
+   * VÍ DỤ: <<<64, 32>>> (32 blocks, mỗi block 64 threads) hoặc <<<128, 256>>> (256 blocks, mỗi block 128 threads)
+   * Điều này giúp tận dụng tối đa SM và tăng Occupancy 
+   * Occupancy càng cao thì khả năng che giấu latency càng tốt. 
+B. Giảm số Register/thread hoặc shared memory/block
+B. Tăng Block Size nếu phù hợp 
+ - Hiện tại bạn đang chạy với 32 threads mỗi block, khá nhỏ
+ - CUDA thường tối ưu tốt hơn với 128, 256 hoặc 512 threads/block
+ - Ví dụ <<<256, 256>>>sẽ giúp kernel chạy nhiều warps hơn/block -> Tốt cho Occupancy 

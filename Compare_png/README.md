@@ -21,7 +21,7 @@ nsys profile --stats=true ./your_program.exe
  * Cache miss, register usage và thời gian thực thi từng dòng lệnh.
 > #### **Occupancy là gì ?** ####
 > * Occupancy là tỷ lệ phần trăm số warp đang họat động (active warp) trên mỗi SM so với tổng số warp tối đa mà SM đó có thể chứa `Occupancy = (Số warp đang hoạt đông / Số warp trên mỗi SM) x 100%`
-> * Occupancy quan trọng vì khi nó cao, sẽ giúp che giấu độ trễ (latency) của: 
+> * **Occupancy quan trọng vì khi nó cao, sẽ giúp che giấu độ trễ (latency)** của: 
 >  - Truy cập bộ nhớ (global memory, DRAM)
 >  - Thao tác tính toán bị phụ thuộc 
 > * SM không idle -> Hiệu năng tổng thể cao hơn
@@ -69,6 +69,7 @@ ___shared___ float buffer[4096]; //Moi block dùng shared memory khoang 16KB (40
 > * 1024 threads/block x 64 = 65536 registers -> Hết sạch register -> Chỉ 1 block chạy 
 👉 Do đó:
 * Viết kernel tối ưu nghĩa là giảm dùng shared memory và register per thread, để GPU chứa nhiều block cùng lúc hơn ⇒ Tăng occupancy ⇒ Tăng hiệu suất.
+* ### Nên cấu hình sao cho mỗi SM có thể chứa được nhiều block (ít nhất 1 SM chứa đc 1 blocks, còn nếu nhiều hơn thì GPU sẽ tự động phân chia đều cho các SM và luôn phiên xử lý), tránh việc một block chứa quá nhiều threads (hoặc dùng quá nhiều shared memory và register), dẫn đến ít block chạy đồng thời trên SM, gây lãng phí SM, nên chia nhỏ ra nhiều blocks để SM nào cũng phải hoạt động ###
 
 **👉 Lệnh sử dụng:**
 ```bash
