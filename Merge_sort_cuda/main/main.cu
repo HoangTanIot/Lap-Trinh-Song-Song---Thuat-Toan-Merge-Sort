@@ -32,16 +32,6 @@ int main(void){
   const int numSorts = 15;
   double num_gen_time, total_time = 0.0f;
 
-  // dim3 threadsPerBlock, blocksPerGrid;
-
-  // threadsPerBlock.x = 32;
-  // threadsPerBlock.y = 1;
-  // threadsPerBlock.z = 1;
-
-  // blocksPerGrid.x = 8;
-  // blocksPerGrid.y = 1;
-  // blocksPerGrid.z = 1;
-
   std::cout << "Nhap kich thuoc mang: ";
   std::cin >> num;
   std::cin.ignore();
@@ -81,7 +71,7 @@ int main(void){
     }
 
     //In ket qua ra man hinh + luu vao file (tgian thuc thi + tgian tao mang)
-    std::cout << "Lan "<< i + 1 << ": " << duration << " ms, check: OK !" << std::endl;
+    std::cout << "Lan "<< i + 1 << ": " << duration << " s, check: OK !" << std::endl;
     std::cout << "Number generate time: " << num_gen_time << " seconds" << std::endl;
     outFile << i + 1 << "," << std::fixed << std::setprecision(10) << duration << ","
                             << std::fixed << std::setprecision(10) << num_gen_time << "\n";

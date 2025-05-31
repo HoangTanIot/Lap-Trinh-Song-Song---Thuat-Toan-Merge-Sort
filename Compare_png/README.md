@@ -12,6 +12,7 @@ Tổng quan hiệu suất kernel:
 ```bash
 nsys profile --stats=true ./your_program.exe
 ```
+Lúc này, log sẽ xuất ra dạng text (terminal) (không dùng GUI)
 ![image](https://github.com/user-attachments/assets/01e9ce81-db05-47e9-bff3-bb22f8adc79c)
 
 2. `NSIGHT COMPUTE` (`ncu`)
@@ -19,6 +20,7 @@ nsys profile --stats=true ./your_program.exe
  * Truy cập bộ nhớ (memory accesses)
  * Occupancy (mức độ tận dụng tài nguyên GPU). Nó đánh giá khả năng ẩn latency và khai thác phần cứng 
  * Cache miss, register usage và thời gian thực thi từng dòng lệnh.
+
 > #### **Occupancy là gì ?** ####
 > * Occupancy là tỷ lệ phần trăm số warp đang họat động (active warp) trên mỗi SM so với tổng số warp tối đa mà SM đó có thể chứa `Occupancy = (Số warp đang hoạt đông / Số warp trên mỗi SM) x 100%`
 > * **Occupancy quan trọng vì khi nó cao, sẽ giúp che giấu độ trễ (latency)** của: 
@@ -54,7 +56,7 @@ ___shared___ float buffer[4096]; //Moi block dùng shared memory khoang 16KB (40
 * SM có số lượng threads tối đa là 2048 threads cho mỗi SM
 * Nếu block bạn định nghĩa chứa 1024 threads thì chỉ chạy song song được 2 block cùng lúc
 
-*4. Số Warps / số block per SM
+*4. Số Warps / số block per SM*
 * Kiến trúc GPU còn giới hạn: 
  - Số warp tối đa trên mỗi SM
  - Số block tối đa trên mỗi SM
@@ -96,6 +98,7 @@ Ngoài ra còn một số lệnh để lọc phần phân tích:
 |--------------------------|----------------------------|
 | Đo hiệu suất truy cập bộ nhớ | `ncu --section MemoryWorkloadAnalysis  .\your_program.exe` |
 | Kiểm tra occupancy kernel | `ncu --section SpeedOfLight .\your_program.exe` | 
+| Phân tích 1 kernel cụ thể | `ncu --target-processes all --launch-skip 0 --launch-count 1 .\your_program.exe` |
 > Lưu ý, lệnh này chỉ dùng được khi mở quyền Admin cho command prompt hay PowerShell
 ![image](https://github.com/user-attachments/assets/f2ea7d79-32f1-45b6-89fe-e95fcad501ff)
 

@@ -211,7 +211,7 @@ void mergeSortGPU(long *arr, int n){
     //Tinh toan tham so kernel
     int afterSize = currentSize * 2; //Bien luu tong do dai cua 2 mang con sau khi duoc merge (2 -> 4 -> 8,...)
     int numSorts = (n + afterSize - 1) / afterSize; //So luong sorting thread sinh ra (so merge can thuc hien)
-    int numThreadsPerBlock = 24; //Thread cang nho thi so block cang lon -> Tan dung duoc het SM -> Tang Occupancy
+    int numThreadsPerBlock = 16; //Thread cang nho thi so block cang lon -> Tan dung duoc het SM -> Tang Occupancy -> Tgian chay cang thap
     int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;
 
     //Truoc khi merge copy du lieu tu deviceArr sang auxArr de xu ly tren auxArr
