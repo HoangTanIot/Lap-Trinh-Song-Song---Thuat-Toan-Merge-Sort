@@ -105,7 +105,7 @@ int main() {
     return 1; 
   }
 
-  FILE *output_file = fopen("Time_test/e_500mil.csv", "w");
+  FILE *output_file = fopen("Time_test/e_30mil(1).csv", "w");
   if(output_file == NULL){
     printf("Khong mo duoc file de ghi !\n");
     free(arr);
@@ -135,7 +135,7 @@ int main() {
   fprintf(output_file, "Average,%.10f\n", aver);
 
   if(isSorted(arr, num)){
-    printf("Check: Ok !");
+    printf("\nCheck: Ok !");
   }else printf("Check: fail");
 
   fclose(output_file);

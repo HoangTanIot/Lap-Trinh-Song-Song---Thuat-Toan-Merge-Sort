@@ -212,7 +212,7 @@ void mergeSortGPU(long *arr, int n){
     int afterSize = currentSize * 2; //Bien luu tong do dai cua 2 mang con sau khi duoc merge (2 -> 4 -> 8,...)
     int numSorts = (n + afterSize - 1) / afterSize; //So luong sorting thread sinh ra (so merge can thuc hien)
     int numThreadsPerBlock = 16; //Thread cang nho thi so block cang lon -> Tan dung duoc het SM -> Tang Occupancy -> Tgian chay cang thap
-    int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock;
+    int numBlocks = (numSorts + numThreadsPerBlock - 1) / numThreadsPerBlock; //Cong thuc lam tron len de dam bao du block (thua con hon thieu)
 
     //Truoc khi merge copy du lieu tu deviceArr sang auxArr de xu ly tren auxArr
     cudaSafeCall(cudaMemcpy(auxArr, deviceArr, n * sizeof(long), cudaMemcpyDeviceToDevice)); //Tranh de cudaMemcpy trong loop

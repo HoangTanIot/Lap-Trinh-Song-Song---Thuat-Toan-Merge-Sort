@@ -96,6 +96,7 @@ ncu ./your_program.exe
 Ngoài ra còn một số lệnh để lọc phần phân tích:
 | Mục tiêu                 | Lệnh sử dụng               | 
 |--------------------------|----------------------------|
+| Kiểm tra thống kê kernel | `ncu --section LaunchStats -o Launch_Stats .\your_program.exe` |
 | Đo hiệu suất truy cập bộ nhớ | `ncu --section MemoryWorkloadAnalysis  .\your_program.exe` |
 | Kiểm tra occupancy kernel | `ncu --section SpeedOfLight .\your_program.exe` | 
 | Phân tích 1 kernel cụ thể | `ncu --target-processes all --launch-skip 0 --launch-count 1 .\your_program.exe` |
