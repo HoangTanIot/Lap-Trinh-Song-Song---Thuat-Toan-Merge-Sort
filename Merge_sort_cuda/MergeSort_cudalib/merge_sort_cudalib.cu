@@ -173,6 +173,11 @@ __global__ void mergeSort_coordinate(long *arr, long *aux, int currentSize, int 
 
   int nTot = right - left + 1; //So threads duoc sinh ra (Tong so phan tu trong doan [left, right])
 
+  /**
+   * Voi chi so idx tang dan tu 0 den n, cung voi currentSize va afterSize,
+   * ta co the tinh duoc chi so left, mid, right theo cong thuc LAM TRON LEN (x + y - 1) / y
+   * Voi moi idx tang len, no lai thuc hien ghep 2 so lien ke nhau lai sinh ra 
+   */
   if(nTot > MERGE_PARALLEL_THRESHOLD){ //Neu so luong phan tu can merge lon hon nguong de co the song song kernel ma khong gay overhead
     int numThreadsPerBlock_mk = 256; //Toi uu tot cho SM -> Sinh ra nhieu block hon
     int numBlocks_mk = (nTot + numThreadsPerBlock_mk - 1) / numThreadsPerBlock_mk; //So blocks duoc sinh ra theo so phan tu mang
